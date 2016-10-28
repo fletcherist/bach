@@ -61,16 +61,37 @@ function getNoteByFrequency (hz) {
 		}
 	})
 
-	console.log(_note)
 	return _note
+}
+
+function getNote (title, pitch) {
+	if (!pitch) pitch = 0
+	for (const _note of notes) {
+		if (_note.title === title) {
+			let index = notes.indexOf(_note) + pitch
+			return notes[index]
+		}
+	}
+
+	return null
+}
+
+function getNextNote (title) {
+	if (!title) throw new Error('No title provided')
+	return getNote(title, +1)
+}
+
+function getPreviousNote (title) {
+	if (!title) throw new Error('No title provided')
+	return getNote(title, -1)
 }
 
 
 osc.start()
 
-
-
-getNoteByFrequency(445)
+console.log(getNoteByFrequency(445))
+console.log(getNextNote('C#4'))
+console.log(getPreviousNote('C4'))
 
 
 
@@ -84,7 +105,15 @@ function keydownHandler (keyCode) {
 	// osc.frequency.value = notes[2].frequency
 }
 
-function changeNotePitch (osc, deltaPitch) {
-	console.log('Pitch has been changed')
-	osc.frequency.value += deltaPitch
+function changeNotePitch (osc, pitch) {
+	let pitchedNote = getNoteByFrequency(osc.frequency.value)
+	const { title } = pitchedNote
+
+	console.log(pitchedNote)
+	switch (pitch) {
+		case  1: pitchedNote = getNextNote(title); break
+		case -1: pitchedNote = getPreviousNote(title); break
+		default: break 
+	}
+	osc.frequency.value = pitchedNote.frequency
 }
