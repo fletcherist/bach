@@ -11,6 +11,7 @@ osc.connect(audioCtx.destination)
 // osc2.frequency.value = 493
 // osc2.connect(audioCtx.destination)
 
+const oscillators = []
 
 const tones = {
 	'C': 261.63,
@@ -27,7 +28,7 @@ const tones = {
 	'B': 493.88
 }
 
-const gamma = []
+const notes = []
 
 let currentOctave = 4
 for (let i = currentOctave; i <= 6; i++) {
@@ -35,7 +36,7 @@ for (let i = currentOctave; i <= 6; i++) {
 		const noteTitle = tone + i
 		const noteFrequency = tones[tone] * i / currentOctave
 		
-		gamma.push({
+		notes.push({
 			title: noteTitle,
 			frequency: noteFrequency
 		})
@@ -48,15 +49,28 @@ function convertNoteToHz (note) {
 	return tones[note]
 }
 
+function getNoteByFrequency (hz) {
+	let distance = 100
+	let _note = {}
+	notes.forEach(note => {
+		const { title, frequency } = note
+		_distance = Math.abs(frequency - hz)
+		if (_distance < distance) {
+			_note = note
+			distance = _distance
+		}
+	})
+
+	console.log(_note)
+	return _note
+}
+
 
 osc.start()
 
 
 
-
-
-
-
+getNoteByFrequency(445)
 
 
 
@@ -67,7 +81,7 @@ function keydownHandler (keyCode) {
 		case 38: return changeNotePitch(osc, +1)
 		case 40: return changeNotePitch(osc, -1)
 	}
-	// osc.frequency.value = gamma[2].frequency
+	// osc.frequency.value = notes[2].frequency
 }
 
 function changeNotePitch (osc, deltaPitch) {
