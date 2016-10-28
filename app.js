@@ -34,10 +34,13 @@ for (let i = currentOctave; i <= 6; i++) {
 	for (const tone in tones) {
 		const noteTitle = tone + i
 		const noteFrequency = tones[tone] * i / currentOctave
-		console.log(noteTitle, noteFrequency)
+		
+		gamma.push({
+			title: noteTitle,
+			frequency: noteFrequency
+		})
 	}
 } 
-	
 
 
 function convertNoteToHz (note) {
@@ -45,10 +48,29 @@ function convertNoteToHz (note) {
 	return tones[note]
 }
 
-let i = 0;
-setInterval(() => {
-	osc.frequency.value = convertNoteToHz('C')
-	i++
-}, 500)
 
 osc.start()
+
+
+
+
+
+
+
+
+
+
+window.addEventListener('keydown', e => keydownHandler(e.keyCode))
+
+function keydownHandler (keyCode) {
+	switch (keyCode) {
+		case 38: return changeNotePitch(osc, +1)
+		case 40: return changeNotePitch(osc, -1)
+	}
+	// osc.frequency.value = gamma[2].frequency
+}
+
+function changeNotePitch (osc, deltaPitch) {
+	console.log('Pitch has been changed')
+	osc.frequency.value += deltaPitch
+}
