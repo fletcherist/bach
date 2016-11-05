@@ -1,47 +1,109 @@
 var audioCtx = new window.AudioContext
 
-let osc = audioCtx.createOscillator()
+class Osc {
+  constructor () {
+    this.osc = audioCtx.createOscillator()
+    this.osc.type = 'sine'
+    this.osc.frequency.value = 260
+    this.osc.connect(audioCtx.destination)
+  }
 
-osc.type = 'sine'
-osc.frequency.value = 400
-osc.connect(audioCtx.destination)
+  play () {
+    this.osc.start()
+  }
 
-// let osc2 = audioCtx.createOscillator()
-// console.log(osc2.type)
-// osc2.frequency.value = 493
-// osc2.connect(audioCtx.destination)
+  pause () {
+    this.osc.stop()
+  }
+
+  changeNotePitch (pitch) {
+    let pitchedNote = getNoteByFrequency(this.osc.frequency.value)
+    const { title } = pitchedNote
+
+    switch (pitch) {
+      case  1: pitchedNote = getNextNote(title); break
+      case -1: pitchedNote = getPreviousNote(title); break
+      default: pitchedNote = getNote(title, pitch); break
+    }
+    console.log(pitchedNote)
+    this.osc.frequency.value = pitchedNote.frequency
+  }
+
+}
+
+let osc = new Osc()
+osc.play()
 
 const oscillators = []
 
 const tones = {
-  'C': 261.63,
-  'C#': 277.18,
-  'D': 293.66,
-  'D#': 311.13,
-  'E': 329.63,
-  'F': 349.23,
-  'F#': 369.99,
-  'G': 392.00,
-  'G#': 415.30,
-  'A': 440.00,
-  'A#': 466.16,
-  'B': 493.88
+  'C4': 261.63,
+  'C#4': 277.18,
+  'D4': 293.66,
+  'D#4': 311.13,
+  'E4': 329.63,
+  'F4': 349.23,
+  'F#4': 369.99,
+  'G4': 392.00,
+  'G#4': 415.30,
+  'A4': 440.00,
+  'A#4': 466.16,
+  'B4': 493.88
 }
 
-const notes = []
+// const orderedTones = [
+//   'C', 'C#', 'D',
+//   'D#', 'E', 'F',
+//   'F#', 'G',' G#',
+//   'A', 'A#', 'B'
+// ]
+
+// dva tona, poluton, tri tona, poluton
+const gammas = {
+  major: [2, 2, 1, 2, 2, 2, 1],
+  minor: [2, 1, 2, 2, 1, 2, 2]
+}
+
+let notes = {
+
+}
 
 let currentOctave = 4
-for (let i = currentOctave; i <= 6; i++) {
+for (let i = currentOctave; i <= 8; i++) {
   for (const tone in tones) {
-    const noteTitle = tone + i
-    const noteFrequency = tones[tone] * i / currentOctave
+    // the title of the note
+    // example: B4, C#6
+    const title = tone + i 
+
+    const toneWithoutOctave = tone.substr(0, tone.length - 1)
+    const currentToneWithOctave = toneWithoutOctave + i
+
+    // Copy the initial octave
+    let previousToneWithOctave = toneWithoutOctave + (i - 1)
+    if (i === currentOctave) {
+      previousToneWithOctave = tone
+    }
+
+    console.log(previousToneWithOctave)
     
-    notes.push({
-      title: noteTitle,
-      frequency: noteFrequency
-    })
+
+    // the frequency of the note
+    let frequency = tones[previousToneWithOctave] * 2
+    if (i === currentOctave) {
+      frequency = tones[previousToneWithOctave]
+    }
+
+
+    tones[currentToneWithOctave] = frequency
+    notes[currentToneWithOctave] = {
+      title: currentToneWithOctave,
+      frequency
+    }
   }
 } 
+
+console.log(notes)
+console.log(tones)
 
 
 function convertNoteToHz (note) {
@@ -52,25 +114,33 @@ function convertNoteToHz (note) {
 function getNoteByFrequency (hz) {
   let distance = 100
   let _note = {}
-  notes.forEach(note => {
-    const { title, frequency } = note
+  for (let note in notes) {
+    // const title = note
+    // const frequency = notes[note]
+    const { title, frequency } = notes[note]
+
     _distance = Math.abs(frequency - hz)
     if (_distance < distance) {
-      _note = note
+      _note = notes[note]
       distance = _distance
     }
-  })
-
+  }
   return _note
 }
 
 function getNote (title, pitch) {
-  if (!pitch) pitch = 0
-  for (const _note of notes) {
-    if (_note.title === title) {
-      let index = notes.indexOf(_note) + pitch
-      return notes[index]
+  let i = pitch
+  for (const _note in notes) {
+    if (_note === title) break
+    i++
+  }
+
+  let e = 0
+  for (const _note in notes) {
+    if (e === i) {
+      return (notes[_note])
     }
+    e++
   }
 
   return null
@@ -86,32 +156,12 @@ function getPreviousNote (title) {
   return getNote(title, -1)
 }
 
-
-osc.start()
-
-console.log(getNoteByFrequency(445))
-console.log(getNextNote('C#4'))
-console.log(getPreviousNote('C4'))
-
 window.addEventListener('keydown', e => keydownHandler(e.keyCode))
-
 function keydownHandler (keyCode) {
   switch (keyCode) {
-    case 38: return changeNotePitch(osc, +1)
-    case 40: return changeNotePitch(osc, -1)
+    case 38: return osc.changeNotePitch(+2)
+    case 40: return osc.changeNotePitch(-1)
   }
   // osc.frequency.value = notes[2].frequency
 }
 
-function changeNotePitch (osc, pitch) {
-  let pitchedNote = getNoteByFrequency(osc.frequency.value)
-  const { title } = pitchedNote
-
-  console.log(pitchedNote)
-  switch (pitch) {
-    case  1: pitchedNote = getNextNote(title); break
-    case -1: pitchedNote = getPreviousNote(title); break
-    default: break 
-  }
-  osc.frequency.value = pitchedNote.frequency
-}
