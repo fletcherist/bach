@@ -6,6 +6,7 @@ class Osc {
     this.osc.type = 'sine'
     this.osc.frequency.value = 260
     this.osc.connect(audioCtx.destination)
+    this.currentNote = 0
   }
 
   play () {
@@ -21,14 +22,18 @@ class Osc {
     const { title } = pitchedNote
 
     switch (pitch) {
-      case  1: pitchedNote = getNextNote(title); break
-      case -1: pitchedNote = getPreviousNote(title); break
-      default: pitchedNote = getNote(title, pitch); break
+      case  1: 
+        pitchedNote = getNote(title, gammas.minor[this.currentNote])
+        this.currentNote++
+        break
+      case -1: 
+        pitchedNote = getNote(title, -gammas.minor[this.currentNote -1])
+        this.currentNote--
+        break
     }
     console.log(pitchedNote)
     this.osc.frequency.value = pitchedNote.frequency
   }
-
 }
 
 let osc = new Osc()
@@ -50,6 +55,7 @@ const tones = {
   'A#4': 466.16,
   'B4': 493.88
 }
+
 
 // const orderedTones = [
 //   'C', 'C#', 'D',
@@ -159,7 +165,7 @@ function getPreviousNote (title) {
 window.addEventListener('keydown', e => keydownHandler(e.keyCode))
 function keydownHandler (keyCode) {
   switch (keyCode) {
-    case 38: return osc.changeNotePitch(+2)
+    case 38: return osc.changeNotePitch(+1)
     case 40: return osc.changeNotePitch(-1)
   }
   // osc.frequency.value = notes[2].frequency
